@@ -1,6 +1,6 @@
-IMAGE_REGISTRY?=localhost:5000/
+IMAGE_REGISTRY?=quay.io/dmarchan/
 IMAGE_VERSION?=latest
-IMAGE_BUILDER?=docker
+IMAGE_BUILDER?=podman
 
 IMAGE_NAME?=$(IMAGE_REGISTRY)userspacecni:$(IMAGE_VERSION)
 

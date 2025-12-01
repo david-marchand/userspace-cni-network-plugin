@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: userspace-cni
-  namespace: kube-system
+  namespace: openshift-multus
 spec:
   selector:
     matchLabels:
@@ -16,7 +16,7 @@ spec:
       containers:
       - name: userspace-cni-plugin
         image: localhost:5000/userspacecni #registory:imagename
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         securityContext:
            allowPrivilegeEscalation: false
            privileged: false
@@ -29,10 +29,10 @@ spec:
              memory: 30Mi
         volumeMounts:
         - name: cnibin
-          mountPath: /opt/cni/bin
+          mountPath: /var/lib/cni/bin/
         command: ["/bin/sh","-c"]
-        args: ["cp -rf /root/userspace-cni-network-plugin/userspace/userspace /opt/cni/bin; sleep inf"]
+        args: ["cp -rf /root/userspace-cni-network-plugin/userspace/userspace /var/lib/cni/bin; sleep inf"]
       volumes:
         - name: cnibin
           hostPath:
-            path: /opt/cni/bin
+            path: /var/lib/cni/bin/
