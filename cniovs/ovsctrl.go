@@ -15,6 +15,7 @@
 package cniovs
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -119,6 +120,30 @@ func createBridge(bridge_name string) error {
 	return err
 }
 
+func linkBridge(bridge_name string, vlan_id int) error {
+	cmd := "ovs-vsctl"
+	args := []string{"add-port", bridge_name, bridge_name + "-to-br-phys", "--", "set", "interface", bridge_name + "-to-br-phys", "type=patch", "options:peer=br-phys-to-" + bridge_name}
+	_, err := execCommand(cmd, args)
+	logging.Verbosef("ovsctl.linkBridge(): " + bridge_name + "-to-br-phys return=%v", err)
+
+	if err == nil {
+		args := []string{"add-port", "br-phys", "br-phys-to-" + bridge_name, "--", "set", "interface", "br-phys-to-" + bridge_name, "type=patch", "options:peer=" + bridge_name + "-to-br-phys", "--", "set", "port", "br-phys-to-" + bridge_name, fmt.Sprintf("tag=%d", vlan_id)}
+		_, err := execCommand(cmd, args)
+		logging.Verbosef("ovsctl.linkBridge(): br-phys-to-" + bridge_name + " return=%v", err)
+	}
+
+	return err
+}
+
+func unlinkBridge(bridge_name string) error {
+	cmd := "ovs-vsctl"
+	args := []string{"del-port", "br-phys", "br-phys-to-" + bridge_name}
+	_, err := execCommand(cmd, args)
+	logging.Verbosef("ovsctl.unlinkBridge(): br-phys-to-" + bridge_name + " return=%v", err)
+
+	return err
+}
+
 func configL2Bridge(bridge_name string) error {
 	// COMMAND: ovs-ofctl add-flow <bridge_name> actions=NORMAL
 	cmd := "ovs-ofctl"
@@ -177,8 +202,15 @@ func doesBridgeContainInterfaces(bridge_name string) bool {
 	name, err := execCommand(cmd, args)
 	logging.Verbosef("ovsctl.doesBridgeContainInterfaces(): return  name=%v err=%v", name, err)
 	if err == nil {
-		if len(name) != 0 {
-			found = true
+		portToSkip := bridge_name + "-to-br-phys"
+		ports := strings.Split(strings.TrimSpace(string(name)), "\n")
+		for _, port := range ports {
+			port = strings.TrimSpace(port)
+			logging.Debugf("ovsctl.doesBridgeContainInterfaces(): port %s, portToSkip=%s", port, portToSkip)
+			if port != "" && port != portToSkip {
+				found = true
+				break
+			}
 		}
 	}
 

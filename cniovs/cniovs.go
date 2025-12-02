@@ -425,6 +425,11 @@ func addLocalNetworkBridge(conf *types.NetConf, args *skel.CmdArgs, data *OvsSav
 		logging.Debugf("addLocalNetworkBridge(): Bridge %s not found, creating", conf.HostConf.BridgeConf.BridgeName)
 		err = createBridge(conf.HostConf.BridgeConf.BridgeName)
 
+		if err == nil && conf.HostConf.BridgeConf.VlanId != 0 {
+			logging.Debugf("addLocalNetworkBridge(): Binding %s to br-phys, vlan %v", conf.HostConf.BridgeConf.BridgeName, conf.HostConf.BridgeConf.VlanId)
+			err = linkBridge(conf.HostConf.BridgeConf.BridgeName, conf.HostConf.BridgeConf.VlanId)
+		}
+
 		if err == nil {
 			// Bridge is always created because it is required for interface.
 			// If bridge type was actually called out, then set the
@@ -447,6 +452,11 @@ func delLocalNetworkBridge(conf *types.NetConf, args *skel.CmdArgs, data *OvsSav
 	if containInterfaces := doesBridgeContainInterfaces(conf.HostConf.BridgeConf.BridgeName); !containInterfaces {
 		logging.Debugf("delLocalNetworkBridge(): No interfaces found, deleting Bridge %s", conf.HostConf.BridgeConf.BridgeName)
 		err = deleteBridge(conf.HostConf.BridgeConf.BridgeName)
+
+		if err == nil && conf.HostConf.BridgeConf.VlanId != 0 {
+			logging.Debugf("delLocalNetworkBridge(): Unbinding %s to br-phys, vlan %v", conf.HostConf.BridgeConf.BridgeName, conf.HostConf.BridgeConf.VlanId)
+			err = unlinkBridge(conf.HostConf.BridgeConf.BridgeName)
+		}
 	} else {
 		logging.Debugf("delLocalNetworkBridge(): Interfaces found, skip deleting Bridge %s", conf.HostConf.BridgeConf.BridgeName)
 	}
