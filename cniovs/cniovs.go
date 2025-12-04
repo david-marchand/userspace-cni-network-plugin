@@ -290,7 +290,10 @@ func addLocalDeviceVhost(conf *types.NetConf, args *skel.CmdArgs, actualSharedDi
 	var vhostName string
 
 	if conf.HostConf.VhostConf.Socketfile == "" {
-		conf.HostConf.VhostConf.Socketfile = fmt.Sprintf("%s-%s", args.ContainerID[:12], args.IfName)
+		conf.HostConf.VhostConf.Socketfile = args.IfName
+		vhostName = fmt.Sprintf("%s-%s", args.ContainerID[:12], args.IfName)
+	} else {
+		vhostName = conf.HostConf.VhostConf.Socketfile
 	}
 
 	sharedDir := getShortSharedDir(actualSharedDir)
@@ -316,7 +319,8 @@ func addLocalDeviceVhost(conf *types.NetConf, args *skel.CmdArgs, actualSharedDi
 	}
 
 	// ovs-vsctl add-port
-	if vhostName, err = createVhostPort(sharedDir,
+	if err = createVhostPort(sharedDir,
+		vhostName,
 		conf.HostConf.VhostConf.Socketfile,
 		clientMode,
 		conf.HostConf.BridgeConf.BridgeName); err == nil {

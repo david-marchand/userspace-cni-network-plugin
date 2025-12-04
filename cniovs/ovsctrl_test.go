@@ -114,14 +114,9 @@ func TestCreateVhostPort(t *testing.T) {
 			require.NoFileExists(path.Join(socketDir, socket), "Socket file shall not be in socketDir")
 
 			SetExecCommand(execCommand)
-			result, err := createVhostPort(socketDir, socket, tc.client, "br0")
+			err := createVhostPort(socketDir, socket, socket, tc.client, "br0")
 			SetDefaultExecCommand()
 
-			if tc.fakeErr == nil {
-				assert.Equal(socket, result, "Unexpected result value")
-			} else {
-				assert.Equal("", result, "Unexpected result value")
-			}
 			assert.Equal(tc.fakeErr, err, "Unexpected error value")
 			assert.Equal(expCmd, execCommand.Cmd, "Unexpected command executed")
 

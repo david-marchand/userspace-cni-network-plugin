@@ -57,7 +57,7 @@ func execCommand(cmd string, args []string) ([]byte, error) {
 Functions to control OVS by using the ovs-vsctl cmdline client.
 */
 
-func createVhostPort(sock_dir string, sock_name string, client bool, bridge_name string) (string, error) {
+func createVhostPort(sock_dir string, vhost_name string, sock_name string, client bool, bridge_name string) (error) {
 	var err error
 
 	type_str := "type=dpdkvhostuser"
@@ -65,9 +65,9 @@ func createVhostPort(sock_dir string, sock_name string, client bool, bridge_name
 		type_str = "type=dpdkvhostuserclient"
 	}
 
-	// COMMAND: ovs-vsctl add-port <bridge_name> <sock_name> -- set Interface <sock_name> type=<dpdkvhostuser|dpdkvhostuserclient>
+	// COMMAND: ovs-vsctl add-port <bridge_name> <vhost_name> -- set Interface <vhost_name> type=<dpdkvhostuser|dpdkvhostuserclient>
 	cmd := "ovs-vsctl"
-	args := []string{"add-port", bridge_name, sock_name, "--", "set", "Interface", sock_name, type_str}
+	args := []string{"add-port", bridge_name, vhost_name, "--", "set", "Interface", vhost_name, type_str}
 
 	if client {
 		socketarg := "options:vhost-server-path=" + filepath.Join(sock_dir, sock_name)
@@ -77,7 +77,7 @@ func createVhostPort(sock_dir string, sock_name string, client bool, bridge_name
 	}
 
 	if _, err = execCommand(cmd, args); err != nil {
-		return "", err
+		return err
 	}
 
 	if !client {
@@ -98,7 +98,7 @@ func createVhostPort(sock_dir string, sock_name string, client bool, bridge_name
 		}
 	}
 
-	return sock_name, err
+	return err
 }
 
 func deleteVhostPort(sock_name string, bridge_name string) error {
