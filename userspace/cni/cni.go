@@ -291,6 +291,7 @@ func CmdGet(args *skel.CmdArgs, exec invoke.Exec, kubeClient kubernetes.Interfac
 func CmdDel(args *skel.CmdArgs, exec invoke.Exec, kubeClient kubernetes.Interface) error {
 	var netConf *types.NetConf
 	var containerEngine string
+	var sharedDir string
 
 	vpp := cnivpp.CniVpp{}
 	ovs := cniovs.CniOvs{}
@@ -307,13 +308,6 @@ func CmdDel(args *skel.CmdArgs, exec invoke.Exec, kubeClient kubernetes.Interfac
 		return err
 	}
 
-	// Retrieve the "SharedDir", directory to remove the socketfile.
-	_, _, sharedDir, err := GetPodAndSharedDir(netConf, args, kubeClient)
-	if err != nil {
-		_ = logging.Errorf("cmdDel: Unable to determine \"SharedDir\" - %v", err)
-		return err
-	}
-
 	//
 	// HOST:
 	//
@@ -321,8 +315,9 @@ func CmdDel(args *skel.CmdArgs, exec invoke.Exec, kubeClient kubernetes.Interfac
 	// Delete the requested interface
 	if netConf.HostConf.Engine == "vpp" {
 		err = vpp.DelFromHost(netConf, args, sharedDir)
+		sharedDir = ""
 	} else if netConf.HostConf.Engine == "ovs-dpdk" {
-		err = ovs.DelFromHost(netConf, args, sharedDir)
+		sharedDir, err = ovs.DelFromHost(netConf, args)
 	} else {
 		err = fmt.Errorf("ERROR: Unknown Host Engine:" + netConf.HostConf.Engine)
 	}

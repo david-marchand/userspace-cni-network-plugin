@@ -198,7 +198,7 @@ func TestDelFromHost(t *testing.T) {
 			defer os.RemoveAll(sharedDir)
 
 			SetExecCommand(execCommand)
-			err := ovs.DelFromHost(tc.netConf, args, sharedDir)
+			sharedDir, err := ovs.DelFromHost(tc.netConf, args)
 			SetDefaultExecCommand()
 
 			if tc.expErr == nil {
@@ -696,7 +696,7 @@ func TestDelLocalDeviceVhost(t *testing.T) {
 			}
 
 			SetExecCommand(execCommand)
-			err := delLocalDeviceVhost(tc.netConf, args, sharedDir, &data)
+			err := delLocalDeviceVhost(tc.netConf, args, &data)
 			SetDefaultExecCommand()
 
 			if tc.expErr == nil {

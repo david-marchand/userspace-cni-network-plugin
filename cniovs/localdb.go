@@ -46,6 +46,8 @@ type OvsSavedData struct {
 	Vhostname string `json:"vhostname"` // Vhost Port name
 	VhostMac  string `json:"vhostmac"`  // Vhost port MAC address
 	IfMac     string `json:"ifmac"`     // Interface Mac address
+	SharedDir string `json:"shareddir"` // Directory where socket is stored
+	Socket    string `json:"socket"`    // Socket file name
 }
 
 //

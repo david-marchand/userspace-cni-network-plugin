@@ -136,7 +136,7 @@ func (cniOvs CniOvs) AddOnContainer(conf *types.NetConf,
 	return configdata.SaveRemoteConfig(conf, args, kubeClient, sharedDir, pod, ipResult)
 }
 
-func (cniOvs CniOvs) DelFromHost(conf *types.NetConf, args *skel.CmdArgs, sharedDir string) error {
+func (cniOvs CniOvs) DelFromHost(conf *types.NetConf, args *skel.CmdArgs) (string, error) {
 	var data OvsSavedData
 	var err error
 
@@ -148,7 +148,7 @@ func (cniOvs CniOvs) DelFromHost(conf *types.NetConf, args *skel.CmdArgs, shared
 	err = LoadConfig(conf, args, &data)
 	if err != nil {
 		logging.Debugf("DelFromHost(ovs): %v", err)
-		return err
+		return "", err
 	}
 
 	//
@@ -168,12 +168,12 @@ func (cniOvs CniOvs) DelFromHost(conf *types.NetConf, args *skel.CmdArgs, shared
 	// Delete Local Interface
 	//
 	if conf.HostConf.IfType == "vhostuser" {
-		err = delLocalDeviceVhost(conf, args, sharedDir, &data)
+		err = delLocalDeviceVhost(conf, args, &data)
 	} else {
 		err = errors.New("ERROR: Unknown HostConf.Type:" + conf.HostConf.IfType)
 	}
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	//
@@ -181,10 +181,10 @@ func (cniOvs CniOvs) DelFromHost(conf *types.NetConf, args *skel.CmdArgs, shared
 	//
 	err = delLocalNetworkBridge(conf, args, &data)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return err
+	return data.SharedDir, nil
 }
 
 func (cniOvs CniOvs) DelFromContainer(conf *types.NetConf, args *skel.CmdArgs, sharedDir string) error {
@@ -324,6 +324,8 @@ func addLocalDeviceVhost(conf *types.NetConf, args *skel.CmdArgs, actualSharedDi
 			return err
 		}
 
+		data.SharedDir = sharedDir
+		data.Socket = conf.HostConf.VhostConf.Socketfile
 		data.Vhostname = vhostName
 		data.IfMac = generateRandomMacAddress()
 	} else {
@@ -333,8 +335,8 @@ func addLocalDeviceVhost(conf *types.NetConf, args *skel.CmdArgs, actualSharedDi
 	return err
 }
 
-func delLocalDeviceVhost(conf *types.NetConf, args *skel.CmdArgs, actualSharedDir string, data *OvsSavedData) error {
-	sharedDir := getShortSharedDir(actualSharedDir)
+func delLocalDeviceVhost(conf *types.NetConf, args *skel.CmdArgs, data *OvsSavedData) error {
+	sharedDir := getShortSharedDir(data.SharedDir)
 
 	// ovs-vsctl --if-exists del-port
 	err := deleteVhostPort(data.Vhostname, conf.HostConf.BridgeConf.BridgeName)
@@ -368,7 +370,7 @@ func delLocalDeviceVhost(conf *types.NetConf, args *skel.CmdArgs, actualSharedDi
 		}
 		defer folder.Close()
 
-		fileBaseName := fmt.Sprintf("%s-%s", args.ContainerID[:12], args.IfName)
+		fileBaseName := data.Socket
 		filesForContainerID, err := folder.Readdirnames(0)
 		if err != nil {
 			return err
