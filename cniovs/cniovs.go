@@ -239,7 +239,7 @@ func createSharedDir(sharedDir, oldSharedDir string) error {
 
 	_, err = os.Stat(sharedDir)
 	if os.IsNotExist(err) {
-		err = os.MkdirAll(sharedDir, 0750)
+		err = os.MkdirAll(sharedDir, 0755)
 		if err != nil {
 			_ = logging.Errorf("createSharedDir: Failed to create dir (%s): %v", sharedDir, err)
 			return err
@@ -285,6 +285,19 @@ func setSharedDirGroup(sharedDir string, group string) error {
 	return nil
 }
 
+func setSharedDirMode(sharedDir string, dirMode string) error {
+	mode, err := strconv.ParseUint(dirMode, 8, 32)
+	if err != nil {
+		return fmt.Errorf("invalid dirMode %q: %v", dirMode, err)
+	}
+
+	err = os.Chmod(sharedDir, os.FileMode(mode))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func addLocalDeviceVhost(conf *types.NetConf, args *skel.CmdArgs, actualSharedDir string, data *OvsSavedData) error {
 	var err error
 	var vhostName string
@@ -308,6 +321,15 @@ func addLocalDeviceVhost(conf *types.NetConf, args *skel.CmdArgs, actualSharedDi
 		err = setSharedDirGroup(sharedDir, group)
 		if err != nil {
 			_ = logging.Errorf("addLocalDeviceVhost: Failed to set shared dir group: %v", err)
+			return err
+		}
+	}
+
+	dirMode := conf.HostConf.VhostConf.DirMode
+	if (dirMode != "") {
+		err = setSharedDirMode(sharedDir, dirMode)
+		if err != nil {
+			_ = logging.Errorf("addLocalDeviceVhost: Failed to set shared dir permissions: %v", err)
 			return err
 		}
 	}
