@@ -221,7 +221,7 @@ func getShortSharedDir(sharedDir string) string {
 	// When the sharedDir path length is greater than 89 (108 - 19)
 	// 19 is the possible vhostuser socket file name length "/abcdefghijkl-net99" (1 + 12 + 1 + 3 + 2)
 	// FIXME: why shareddir is shortened only in case that it contains "empty-dir"?
-	if len(sharedDir) >= 89 && strings.Contains(sharedDir, "empty-dir") {
+	if false && len(sharedDir) >= 89 && strings.Contains(sharedDir, "empty-dir") {
 		// Format - /var/lib/kubelet/pods/<podID>/volumes/kubernetes.io~empty-dir/shared-dir
 		parts := strings.Split(sharedDir, "/")
 		// FIXME: it's not safe; can we assure that shareDir with "empty-dir" will always have at least 5 dirs?
@@ -245,7 +245,7 @@ func createSharedDir(sharedDir, oldSharedDir string) error {
 			return err
 		}
 
-		if strings.Contains(sharedDir, DefaultHostVhostuserBaseDir) {
+		if false && strings.Contains(sharedDir, DefaultHostVhostuserBaseDir) {
 			logging.Debugf("createSharedDir: Mount from %s to %s", oldSharedDir, sharedDir)
 			err = unix.Mount(oldSharedDir, sharedDir, "", unix.MS_BIND, "")
 			if err != nil {
@@ -271,9 +271,11 @@ func setSharedDirGroup(sharedDir string, group string) error {
 		return err
 	}
 
-	err = os.Chown(DefaultHostVhostuserBaseDir, -1, gid)
-	if err != nil {
-		return err
+	if false {
+		err = os.Chown(DefaultHostVhostuserBaseDir, -1, gid)
+		if err != nil {
+			return err
+		}
 	}
 
 	err = os.Chown(sharedDir, -1, gid)
@@ -346,7 +348,7 @@ func delLocalDeviceVhost(conf *types.NetConf, args *skel.CmdArgs, data *OvsSaved
 	}
 
 	// Check if sharedDir is a mount dir of EmptyDir
-	if strings.Contains(sharedDir, DefaultHostVhostuserBaseDir) {
+	if false && strings.Contains(sharedDir, DefaultHostVhostuserBaseDir) {
 		logging.Debugf("delLocalDeviceVhost: Unmount shared directory: %v", sharedDir)
 		_, err = os.Stat(sharedDir)
 		if os.IsNotExist(err) {
