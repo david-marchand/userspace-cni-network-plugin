@@ -307,9 +307,8 @@ func CmdDel(args *skel.CmdArgs, exec invoke.Exec, kubeClient kubernetes.Interfac
 		return err
 	}
 
-	// Retrieve the "SharedDir", directory to create the socketfile in.
-	// Save off kubeClient and pod for later use if needed.
-	_, pod, sharedDir, err := GetPodAndSharedDir(netConf, args, kubeClient)
+	// Retrieve the "SharedDir", directory to remove the socketfile.
+	_, _, sharedDir, err := GetPodAndSharedDir(netConf, args, kubeClient)
 	if err != nil {
 		_ = logging.Errorf("cmdDel: Unable to determine \"SharedDir\" - %v", err)
 		return err
@@ -346,9 +345,9 @@ func CmdDel(args *skel.CmdArgs, exec invoke.Exec, kubeClient kubernetes.Interfac
 
 	// Delete the requested interface
 	if containerEngine == "vpp" {
-		err = vpp.DelFromContainer(netConf, args, sharedDir, pod)
+		err = vpp.DelFromContainer(netConf, args, sharedDir)
 	} else if containerEngine == "ovs-dpdk" {
-		err = ovs.DelFromContainer(netConf, args, sharedDir, pod)
+		err = ovs.DelFromContainer(netConf, args, sharedDir)
 	} else {
 		err = fmt.Errorf("ERROR: Unknown Container Engine:" + containerEngine)
 	}

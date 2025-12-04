@@ -64,7 +64,7 @@ func TestDelOnContainer(t *testing.T) {
 		// just in case DelFromContainer fails
 		defer os.RemoveAll(sharedDir)
 
-		err := cniVpp.DelFromContainer(&types.NetConf{}, args, sharedDir, nil)
+		err := cniVpp.DelFromContainer(&types.NetConf{}, args, sharedDir)
 		assert.NoError(t, err, "Unexpected error")
 		assert.NoDirExists(t, sharedDir, "Container data were not removed")
 	})

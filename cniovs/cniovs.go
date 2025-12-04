@@ -187,7 +187,7 @@ func (cniOvs CniOvs) DelFromHost(conf *types.NetConf, args *skel.CmdArgs, shared
 	return err
 }
 
-func (cniOvs CniOvs) DelFromContainer(conf *types.NetConf, args *skel.CmdArgs, sharedDir string, pod *v1.Pod) error {
+func (cniOvs CniOvs) DelFromContainer(conf *types.NetConf, args *skel.CmdArgs, sharedDir string) error {
 	logging.Infof("OVS DelFromContainer: ENTER - Container %s Iface %s", args.ContainerID[:12], args.IfName)
 
 	var err = configdata.FileCleanup(sharedDir, "")

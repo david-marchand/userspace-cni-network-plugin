@@ -135,7 +135,7 @@ func TestDelOnContainer(t *testing.T) {
 		// just in case that DelFromContainer fails
 		defer os.RemoveAll(sharedDir)
 
-		err := ovs.DelFromContainer(&types.NetConf{}, args, sharedDir, nil)
+		err := ovs.DelFromContainer(&types.NetConf{}, args, sharedDir)
 		assert.NoError(t, err, "Unexpected error")
 		assert.NoDirExists(t, sharedDir, "Container data were not removed")
 	})

@@ -235,7 +235,7 @@ func (cniVpp CniVpp) DelFromHost(conf *types.NetConf, args *skel.CmdArgs, shared
 	}
 }
 
-func (cniVpp CniVpp) DelFromContainer(conf *types.NetConf, args *skel.CmdArgs, sharedDir string, pod *v1.Pod) error {
+func (cniVpp CniVpp) DelFromContainer(conf *types.NetConf, args *skel.CmdArgs, sharedDir string) error {
 	logging.Infof("VPP DelFromContainer: ENTER - Container %s Iface %s", args.ContainerID[:12], args.IfName)
 
 	_ = configdata.FileCleanup(sharedDir, "")

@@ -42,6 +42,5 @@ type UsrSpCni interface {
 		sharedDir string) error
 	DelFromContainer(conf *types.NetConf,
 		args *skel.CmdArgs,
-		sharedDir string,
-		pod *v1.Pod) error
+		sharedDir string) error
 }
