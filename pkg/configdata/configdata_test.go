@@ -49,101 +49,101 @@ func TestSaveRemoteConfig(t *testing.T) {
 		{
 			name:    "save to pod vhostuser with host mode client and NetConf name",
 			netConf: &types.NetConf{Name: "Simple NetConf", HostConf: types.UserSpaceConf{Engine: "ovs-dpdk", IfType: "vhostuser", VhostConf: types.VhostConf{Mode: "client"}}},
-			expJson: `[{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"iftype":"vhostuser","memif":{},"vhost":{"mode":"server"},"bridge":{}},"ipResult":{"dns":{}},"name":"Simple NetConf"}]`,
+			expJson: `[{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"iftype":"vhostuser","memif":{},"vhost":{"mode":"server"},"bridge":{},"bandwidth":{}},"ipResult":{"dns":{}},"name":"Simple NetConf"}]`,
 		},
 		{
 			name:    "save to pod vhostuser with host mode server",
 			netConf: &types.NetConf{HostConf: types.UserSpaceConf{Engine: "ovs-dpdk", IfType: "vhostuser", VhostConf: types.VhostConf{Mode: "server"}}},
-			expJson: `[{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"iftype":"vhostuser","memif":{},"vhost":{"mode":"client"},"bridge":{}},"ipResult":{"dns":{}}}]`,
+			expJson: `[{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"iftype":"vhostuser","memif":{},"vhost":{"mode":"client"},"bridge":{},"bandwidth":{}},"ipResult":{"dns":{}}}]`,
 		},
 		{
 			name:    "save to pod vhostuser with host mode client",
 			netConf: &types.NetConf{HostConf: types.UserSpaceConf{Engine: "ovs-dpdk", IfType: "vhostuser", VhostConf: types.VhostConf{Mode: "client"}}},
-			expJson: `[{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"iftype":"vhostuser","memif":{},"vhost":{"mode":"server"},"bridge":{}},"ipResult":{"dns":{}}}]`,
+			expJson: `[{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"iftype":"vhostuser","memif":{},"vhost":{"mode":"server"},"bridge":{},"bandwidth":{}},"ipResult":{"dns":{}}}]`,
 		},
 		{
 			name:    "save to pod vhostuser with no host mode",
 			netConf: &types.NetConf{HostConf: types.UserSpaceConf{Engine: "ovs-dpdk", IfType: "vhostuser"}},
-			expJson: `[{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"iftype":"vhostuser","memif":{},"vhost":{"mode":"client"},"bridge":{}},"ipResult":{"dns":{}}}]`,
+			expJson: `[{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"iftype":"vhostuser","memif":{},"vhost":{"mode":"client"},"bridge":{},"bandwidth":{}},"ipResult":{"dns":{}}}]`,
 		},
 		{
 			name:    "save to pod vhostuser with both host and ContainerConf mode server",
 			netConf: &types.NetConf{HostConf: types.UserSpaceConf{Engine: "ovs-dpdk", IfType: "vhostuser", VhostConf: types.VhostConf{Mode: "server"}}, ContainerConf: types.UserSpaceConf{Engine: "ovs-dpdk", IfType: "vhostuser", VhostConf: types.VhostConf{Mode: "server"}}},
-			expJson: `[{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"engine":"ovs-dpdk","iftype":"vhostuser","memif":{},"vhost":{"mode":"server"},"bridge":{}},"ipResult":{"dns":{}}}]`,
+			expJson: `[{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"engine":"ovs-dpdk","iftype":"vhostuser","memif":{},"vhost":{"mode":"server"},"bridge":{},"bandwidth":{}},"ipResult":{"dns":{}}}]`,
 		},
 		{
 			name:    "save to pod vhostuser with ContainerConf mode server and Socketfile override",
 			netConf: &types.NetConf{HostConf: types.UserSpaceConf{Engine: "ovs-dpdk", IfType: "vhostuser", VhostConf: types.VhostConf{Mode: "client", Socketfile: "vhostuser-hostconf.sock"}}, ContainerConf: types.UserSpaceConf{Engine: "ovs-dpdk", IfType: "vhostuser", VhostConf: types.VhostConf{Mode: "server", Socketfile: "vhostuser-containerconf.sock"}}},
 			// FIXME: possible bug - Socketfile from ContainerConf is overrided by value from HostConf!
-			expJson: `[{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"engine":"ovs-dpdk","iftype":"vhostuser","memif":{},"vhost":{"mode":"server","socketfile":"vhostuser-hostconf.sock"},"bridge":{}},"ipResult":{"dns":{}}}]`,
+			expJson: `[{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"engine":"ovs-dpdk","iftype":"vhostuser","memif":{},"vhost":{"mode":"server","socketfile":"vhostuser-hostconf.sock"},"bridge":{},"bandwidth":{}},"ipResult":{"dns":{}}}]`,
 		},
 
 		{
 			name:    "save to pod without ContainerConf netType",
 			netConf: &types.NetConf{HostConf: types.UserSpaceConf{Engine: "ovs-dpdk", IfType: "vhostuser", NetType: "bridge", VhostConf: types.VhostConf{Mode: "client"}}},
-			expJson: `[{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"iftype":"vhostuser","memif":{},"vhost":{"mode":"server"},"bridge":{}},"ipResult":{"dns":{}}}]`,
+			expJson: `[{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"iftype":"vhostuser","memif":{},"vhost":{"mode":"server"},"bridge":{},"bandwidth":{}},"ipResult":{"dns":{}}}]`,
 		},
 		{
 			name:     "save to pod with ipResult and without ContainerConf netType",
 			netConf:  &types.NetConf{HostConf: types.UserSpaceConf{Engine: "ovs-dpdk", IfType: "vhostuser", NetType: "bridge", VhostConf: types.VhostConf{Mode: "client"}}},
 			ipResult: &current.Result{Interfaces: []*current.Interface{{Name: "vlan0", Mac: "fe:ed:de:ad:be:ef"}}},
-			expJson:  `[{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"iftype":"vhostuser","memif":{},"netType":"interface","vhost":{"mode":"server"},"bridge":{}},"ipResult":{"interfaces":[{"name":"vlan0","mac":"fe:ed:de:ad:be:ef"}],"dns":{}}}]`,
+			expJson:  `[{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"iftype":"vhostuser","memif":{},"netType":"interface","vhost":{"mode":"server"},"bridge":{},"bandwidth":{}},"ipResult":{"interfaces":[{"name":"vlan0","mac":"fe:ed:de:ad:be:ef"}],"dns":{}}}]`,
 		},
 		{
 			name:     "save to pod with ipResult and with ContainerConf netType set",
 			netConf:  &types.NetConf{HostConf: types.UserSpaceConf{Engine: "ovs-dpdk", IfType: "vhostuser", NetType: "bridge", VhostConf: types.VhostConf{Mode: "client"}}, ContainerConf: types.UserSpaceConf{NetType: "bridge"}},
 			ipResult: &current.Result{Interfaces: []*current.Interface{{Name: "vlan0", Mac: "fe:ed:de:ad:be:ef"}}},
-			expJson:  `[{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"iftype":"vhostuser","memif":{},"netType":"bridge","vhost":{"mode":"server"},"bridge":{}},"ipResult":{"interfaces":[{"name":"vlan0","mac":"fe:ed:de:ad:be:ef"}],"dns":{}}}]`,
+			expJson:  `[{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"iftype":"vhostuser","memif":{},"netType":"bridge","vhost":{"mode":"server"},"bridge":{},"bandwidth":{}},"ipResult":{"interfaces":[{"name":"vlan0","mac":"fe:ed:de:ad:be:ef"}],"dns":{}}}]`,
 		},
 		{
 			name:    "save to pod with ContainerConf ifType set",
 			netConf: &types.NetConf{HostConf: types.UserSpaceConf{Engine: "ovs-dpdk", IfType: "vhostuser", NetType: "bridge", VhostConf: types.VhostConf{Mode: "client"}}, ContainerConf: types.UserSpaceConf{IfType: "interface"}},
-			expJson: `[{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"iftype":"interface","memif":{}, "vhost":{},"bridge":{}},"ipResult":{"dns":{}}}]`,
+			expJson: `[{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"iftype":"interface","memif":{}, "vhost":{},"bridge":{},"bandwidth":{}},"ipResult":{"dns":{}}}]`,
 		},
 		{
 			name:    "save to pod with ifType memif and no host role",
 			netConf: &types.NetConf{HostConf: types.UserSpaceConf{Engine: "ovs-dpdk", IfType: "memif"}},
-			expJson: `[{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"iftype":"memif","memif":{"role":"master"},"vhost":{},"bridge":{}},"ipResult":{"dns":{}}}]`,
+			expJson: `[{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"iftype":"memif","memif":{"role":"master"},"vhost":{},"bridge":{},"bandwidth":{}},"ipResult":{"dns":{}}}]`,
 		},
 		{
 			name:    "save to pod with ifType memif and ContainerConf role master and socketfile override",
 			netConf: &types.NetConf{HostConf: types.UserSpaceConf{Engine: "ovs-dpdk", IfType: "memif", MemifConf: types.MemifConf{Role: "master", Socketfile: "memif-hostconf.sock"}}, ContainerConf: types.UserSpaceConf{IfType: "memif", MemifConf: types.MemifConf{Role: "master", Socketfile: "memif-memifconf.sock"}}},
 			// FIXME: possible bug - Socketfile from ContainerConf is overrided by value from HostConf!
-			expJson: `[{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"iftype":"memif","memif":{"role":"master","socketfile":"memif-hostconf.sock"},"vhost":{},"bridge":{}},"ipResult":{"dns":{}}}]`,
+			expJson: `[{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"iftype":"memif","memif":{"role":"master","socketfile":"memif-hostconf.sock"},"vhost":{},"bridge":{},"bandwidth":{}},"ipResult":{"dns":{}}}]`,
 		},
 		{
 			name:    "save to pod with ifType memif and host role master",
 			netConf: &types.NetConf{HostConf: types.UserSpaceConf{Engine: "ovs-dpdk", IfType: "memif", MemifConf: types.MemifConf{Role: "master"}}},
-			expJson: `[{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"iftype":"memif","memif":{"role":"slave"},"vhost":{},"bridge":{}},"ipResult":{"dns":{}}}]`,
+			expJson: `[{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"iftype":"memif","memif":{"role":"slave"},"vhost":{},"bridge":{},"bandwidth":{}},"ipResult":{"dns":{}}}]`,
 		},
 		{
 			name:    "save to pod with ifType memif and host role slave",
 			netConf: &types.NetConf{HostConf: types.UserSpaceConf{Engine: "ovs-dpdk", IfType: "memif", MemifConf: types.MemifConf{Role: "slave"}}},
-			expJson: `[{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"iftype":"memif","memif":{"role":"master"},"vhost":{},"bridge":{}},"ipResult":{"dns":{}}}]`,
+			expJson: `[{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"iftype":"memif","memif":{"role":"master"},"vhost":{},"bridge":{},"bandwidth":{}},"ipResult":{"dns":{}}}]`,
 		},
 		{
 			name:    "save to pod with ifType memif and host role master and mode ip",
 			netConf: &types.NetConf{HostConf: types.UserSpaceConf{Engine: "ovs-dpdk", IfType: "memif", MemifConf: types.MemifConf{Role: "master", Mode: "ip"}}},
-			expJson: `[{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"iftype":"memif","memif":{"role":"slave","mode":"ip"},"vhost":{},"bridge":{}},"ipResult":{"dns":{}}}]`,
+			expJson: `[{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"iftype":"memif","memif":{"role":"slave","mode":"ip"},"vhost":{},"bridge":{},"bandwidth":{}},"ipResult":{"dns":{}}}]`,
 		},
 		{
 			name:    "save to pod with ifType memif and ContainerConf role master and mode ethernet",
 			netConf: &types.NetConf{HostConf: types.UserSpaceConf{Engine: "ovs-dpdk", IfType: "memif", MemifConf: types.MemifConf{Role: "slave", Mode: "ip"}}, ContainerConf: types.UserSpaceConf{IfType: "memif", MemifConf: types.MemifConf{Role: "master", Mode: "ethernet"}}},
 
-			expJson: `[{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"iftype":"memif","memif":{"role":"master","mode":"ethernet"},"vhost":{},"bridge":{}},"ipResult":{"dns":{}}}]`,
+			expJson: `[{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"iftype":"memif","memif":{"role":"master","mode":"ethernet"},"vhost":{},"bridge":{},"bandwidth":{}},"ipResult":{"dns":{}}}]`,
 		},
 		{
 			name:     "save to file",
 			netConf:  &types.NetConf{HostConf: types.UserSpaceConf{Engine: "ovs-dpdk", IfType: "vhostuser", NetType: "bridge", VhostConf: types.VhostConf{Mode: "client"}}},
 			testType: "client_nil",
-			expJson:  `{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"iftype":"vhostuser","memif":{},"vhost":{"mode":"server"},"bridge":{}},"ipResult":{"dns":{}}}`,
+			expJson:  `{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"iftype":"vhostuser","memif":{},"vhost":{"mode":"server"},"bridge":{},"bandwidth":{}},"ipResult":{"dns":{}}}`,
 		},
 		{
 			name:      "save to file to newly created shared dir",
 			netConf:   &types.NetConf{HostConf: types.UserSpaceConf{Engine: "ovs-dpdk", IfType: "vhostuser", NetType: "bridge", VhostConf: types.VhostConf{Mode: "client"}}},
 			testType:  "client_nil",
 			brokenDir: "none",
-			expJson:   `{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"iftype":"vhostuser","memif":{},"vhost":{"mode":"server"},"bridge":{}},"ipResult":{"dns":{}}}`,
+			expJson:   `{"containerId":"#UUID#","ifName":"#ifName#","name":"","config":{"iftype":"vhostuser","memif":{},"vhost":{"mode":"server"},"bridge":{},"bandwidth":{}},"ipResult":{"dns":{}}}`,
 			expErr:    nil,
 		},
 		{

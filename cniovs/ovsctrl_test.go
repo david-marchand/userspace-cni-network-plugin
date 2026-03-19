@@ -444,3 +444,137 @@ func TestExecCommand(t *testing.T) {
 		assert.Equal(t, expOut, out, "Unexpected result")
 	})
 }
+
+func TestSetIngressPolicing(t *testing.T) {
+	expCmd := "ovs-vsctl"
+	portName := "test-port"
+	rateBits := uint64(1000000000)  // 1 Gbps
+	burstBits := uint64(1000000000) // 1 Gb
+	// Expected conversion: bits/sec -> kbps, bits -> kb
+	expArgs := []string{"set", "Interface", "test-port", "ingress_policing_rate=1000000", "ingress_policing_burst=1000000"}
+
+	testCases := []struct {
+		name    string
+		fakeErr error
+	}{
+		{
+			name:    "set ingress policing successfully",
+			fakeErr: nil,
+		},
+		{
+			name:    "fail to set ingress policing",
+			fakeErr: errors.New("failed to set policing"),
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			execCommand := &FakeExecCommand{Err: tc.fakeErr}
+			SetExecCommand(execCommand)
+			result := setIngressPolicing(portName, rateBits, burstBits)
+			SetDefaultExecCommand()
+			assert.Equal(t, tc.fakeErr, result, "Unexpected result")
+			assert.Equal(t, expCmd, execCommand.Cmd, "Unexpected command executed")
+			assert.Equal(t, expArgs, execCommand.Args, "Unexpected command arguments")
+		})
+	}
+}
+
+func TestClearIngressPolicing(t *testing.T) {
+	expCmd := "ovs-vsctl"
+	portName := "test-port"
+	expArgs := []string{"set", "Interface", "test-port", "ingress_policing_rate=0", "ingress_policing_burst=0"}
+
+	testCases := []struct {
+		name    string
+		fakeErr error
+	}{
+		{
+			name:    "clear ingress policing successfully",
+			fakeErr: nil,
+		},
+		{
+			name:    "fail to clear ingress policing",
+			fakeErr: errors.New("failed to clear policing"),
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			execCommand := &FakeExecCommand{Err: tc.fakeErr}
+			SetExecCommand(execCommand)
+			result := clearIngressPolicing(portName)
+			SetDefaultExecCommand()
+			assert.Equal(t, tc.fakeErr, result, "Unexpected result")
+			assert.Equal(t, expCmd, execCommand.Cmd, "Unexpected command executed")
+			assert.Equal(t, expArgs, execCommand.Args, "Unexpected command arguments")
+		})
+	}
+}
+
+func TestSetEgressPolicer(t *testing.T) {
+	expCmd := "ovs-vsctl"
+	portName := "test-port"
+	rateBits := uint64(1000000000)  // 1 Gbps
+	burstBits := uint64(1000000000) // 1 Gb
+	// Expected conversion: bits/sec -> bytes/sec, bits -> bytes
+	expArgs := []string{
+		"set", "port", "test-port", "qos=@newqos", "--",
+		"--id=@newqos", "create", "qos", "type=egress-policer",
+		"other-config:cir=125000000", "other-config:cbs=125000000",
+	}
+
+	testCases := []struct {
+		name    string
+		fakeErr error
+	}{
+		{
+			name:    "set egress policer successfully",
+			fakeErr: nil,
+		},
+		{
+			name:    "fail to set egress policer",
+			fakeErr: errors.New("failed to set egress policer"),
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			execCommand := &FakeExecCommand{Err: tc.fakeErr}
+			SetExecCommand(execCommand)
+			result := setEgressPolicer(portName, rateBits, burstBits)
+			SetDefaultExecCommand()
+			assert.Equal(t, tc.fakeErr, result, "Unexpected result")
+			assert.Equal(t, expCmd, execCommand.Cmd, "Unexpected command executed")
+			assert.Equal(t, expArgs, execCommand.Args, "Unexpected command arguments")
+		})
+	}
+}
+
+func TestClearEgressPolicer(t *testing.T) {
+	expCmd := "ovs-vsctl"
+	portName := "test-port"
+	expArgs := []string{"--if-exists", "clear", "port", "test-port", "qos"}
+
+	testCases := []struct {
+		name    string
+		fakeErr error
+	}{
+		{
+			name:    "clear egress policer successfully",
+			fakeErr: nil,
+		},
+		{
+			name:    "fail to clear egress policer",
+			fakeErr: errors.New("failed to clear egress policer"),
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			execCommand := &FakeExecCommand{Err: tc.fakeErr}
+			SetExecCommand(execCommand)
+			result := clearEgressPolicer(portName)
+			SetDefaultExecCommand()
+			assert.Equal(t, tc.fakeErr, result, "Unexpected result")
+			assert.Equal(t, expCmd, execCommand.Cmd, "Unexpected command executed")
+			assert.Equal(t, expArgs, execCommand.Args, "Unexpected command arguments")
+		})
+	}
+}
