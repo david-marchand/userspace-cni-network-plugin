@@ -275,13 +275,26 @@ func setEgressPolicer(portName string, rateBits uint64, burstBits uint64) error 
 	return err
 }
 
-// clearEgressPolicer removes egress-policer QoS from an OVS port.
+// clearEgressPolicer removes egress-policer QoS from an OVS port and deletes the QoS record.
 func clearEgressPolicer(portName string) error {
-	// COMMAND: ovs-vsctl clear port <port> qos
-	// Note: This clears the QoS reference. Orphaned QoS objects can be garbage collected.
+	// First, get the QoS UUID attached to the port
 	cmd := "ovs-vsctl"
-	args := []string{"--if-exists", "clear", "port", portName, "qos"}
-	_, err := execCommand(cmd, args)
-	logging.Verbosef("ovsctl.clearEgressPolicer(): port=%s return=%v", portName, err)
+	args := []string{"--if-exists", "get", "Port", portName, "qos"}
+	output, err := execCommand(cmd, args)
+	if err != nil {
+		logging.Verbosef("ovsctl.clearEgressPolicer(): failed to get qos for port=%s: %v", portName, err)
+		return err
+	}
+
+	qosUUID := strings.TrimSpace(string(output))
+	if qosUUID == "" || qosUUID == "[]" {
+		logging.Verbosef("ovsctl.clearEgressPolicer(): port=%s has no QoS attached", portName)
+		return nil
+	}
+
+	// Destroy QoS record and clear reference from port in a single atomic command
+	args = []string{"--", "destroy", "QoS", qosUUID, "--", "clear", "Port", portName, "qos"}
+	_, err = execCommand(cmd, args)
+	logging.Verbosef("ovsctl.clearEgressPolicer(): port=%s qos=%s return=%v", portName, qosUUID, err)
 	return err
 }

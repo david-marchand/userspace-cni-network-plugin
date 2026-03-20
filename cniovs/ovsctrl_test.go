@@ -551,30 +551,55 @@ func TestSetEgressPolicer(t *testing.T) {
 func TestClearEgressPolicer(t *testing.T) {
 	expCmd := "ovs-vsctl"
 	portName := "test-port"
-	expArgs := []string{"--if-exists", "clear", "port", "test-port", "qos"}
+	qosUUID := "12345678-1234-1234-1234-123456789abc"
+	expGetArgs := []string{"--if-exists", "get", "Port", "test-port", "qos"}
+	expDestroyArgs := []string{"--", "destroy", "QoS", qosUUID, "--", "clear", "Port", "test-port", "qos"}
 
 	testCases := []struct {
-		name    string
-		fakeErr error
+		name       string
+		fakeOut    []byte
+		fakeErr    error
+		expArgs    []string
+		expResult  error
 	}{
 		{
-			name:    "clear egress policer successfully",
-			fakeErr: nil,
+			name:      "clear egress policer successfully",
+			fakeOut:   []byte(qosUUID),
+			fakeErr:   nil,
+			expArgs:   expDestroyArgs,
+			expResult: nil,
 		},
 		{
-			name:    "fail to clear egress policer",
-			fakeErr: errors.New("failed to clear egress policer"),
+			name:      "no QoS attached - empty",
+			fakeOut:   []byte(""),
+			fakeErr:   nil,
+			expArgs:   expGetArgs,
+			expResult: nil,
+		},
+		{
+			name:      "no QoS attached - empty array",
+			fakeOut:   []byte("[]"),
+			fakeErr:   nil,
+			expArgs:   expGetArgs,
+			expResult: nil,
+		},
+		{
+			name:      "fail to get QoS",
+			fakeOut:   nil,
+			fakeErr:   errors.New("failed to get qos"),
+			expArgs:   expGetArgs,
+			expResult: errors.New("failed to get qos"),
 		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			execCommand := &FakeExecCommand{Err: tc.fakeErr}
+			execCommand := &FakeExecCommand{Out: tc.fakeOut, Err: tc.fakeErr}
 			SetExecCommand(execCommand)
 			result := clearEgressPolicer(portName)
 			SetDefaultExecCommand()
-			assert.Equal(t, tc.fakeErr, result, "Unexpected result")
+			assert.Equal(t, tc.expResult, result, "Unexpected result")
 			assert.Equal(t, expCmd, execCommand.Cmd, "Unexpected command executed")
-			assert.Equal(t, expArgs, execCommand.Args, "Unexpected command arguments")
+			assert.Equal(t, tc.expArgs, execCommand.Args, "Unexpected command arguments")
 		})
 	}
 }
