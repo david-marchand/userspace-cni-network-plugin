@@ -67,6 +67,17 @@ func LoadNetConf(bytes []byte) (*types.NetConf, error) {
 	}
 
 	//
+	// Validate bandwidth configuration - rate and burst must be set together
+	//
+	bw := netconf.HostConf.BandwidthConf
+	if (bw.IngressRate > 0) != (bw.IngressBurst > 0) {
+		return nil, fmt.Errorf("bandwidth ingressRate and ingressBurst must both be set")
+	}
+	if (bw.EgressRate > 0) != (bw.EgressBurst > 0) {
+		return nil, fmt.Errorf("bandwidth egressRate and egressBurst must both be set")
+	}
+
+	//
 	// Parse previous result
 	//
 	/*

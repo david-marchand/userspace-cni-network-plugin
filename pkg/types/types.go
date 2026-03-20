@@ -50,17 +50,25 @@ type BridgeConf struct {
 	VlanId     int    `json:"vlanId,omitempty"`     // Optional VLAN Id
 }
 
+type BandwidthConf struct {
+	IngressRate  uint64 `json:"ingressRate,omitempty"`  // bits per second (traffic to container)
+	IngressBurst uint64 `json:"ingressBurst,omitempty"` // bits (traffic to container)
+	EgressRate   uint64 `json:"egressRate,omitempty"`   // bits per second (traffic from container)
+	EgressBurst  uint64 `json:"egressBurst,omitempty"`  // bits (traffic from container)
+}
+
 type UserSpaceConf struct {
 	// The Container Instance will default to the Host Instance value if a given attribute
 	// is not provided. However, they are not required to be the same and a Container
 	// attribute can be provided to override. All values are listed as 'omitempty' to
 	// allow the Container struct to be empty where desired.
-	Engine     string     `json:"engine,omitempty"`  // CNI Implementation {vpp|ovs-dpdk}
-	IfType     string     `json:"iftype,omitempty"`  // Type of interface {memif|vhostuser}
-	NetType    string     `json:"netType,omitempty"` // Interface network type {none|bridge|interface}
-	MemifConf  MemifConf  `json:"memif,omitempty"`
-	VhostConf  VhostConf  `json:"vhost,omitempty"`
-	BridgeConf BridgeConf `json:"bridge,omitempty"`
+	Engine        string        `json:"engine,omitempty"`    // CNI Implementation {vpp|ovs-dpdk}
+	IfType        string        `json:"iftype,omitempty"`    // Type of interface {memif|vhostuser}
+	NetType       string        `json:"netType,omitempty"`   // Interface network type {none|bridge|interface}
+	MemifConf     MemifConf     `json:"memif,omitempty"`
+	VhostConf     VhostConf     `json:"vhost,omitempty"`
+	BridgeConf    BridgeConf    `json:"bridge,omitempty"`
+	BandwidthConf BandwidthConf `json:"bandwidth,omitempty"` // QoS/rate-limiting configuration
 }
 
 type NetConf struct {

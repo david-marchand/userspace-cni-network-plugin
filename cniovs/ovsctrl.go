@@ -216,3 +216,72 @@ func doesBridgeContainInterfaces(bridge_name string) bool {
 
 	return found
 }
+
+// setIngressPolicing sets ingress policing on an OVS interface to limit
+// traffic FROM the container (container egress). Rate is in bits/sec, burst is in bits.
+// OVS uses kbps for rate and kb for burst.
+func setIngressPolicing(portName string, rateBits uint64, burstBits uint64) error {
+	// Convert bits/sec to kbps and bits to kb
+	rateKbps := rateBits / 1000
+	burstKb := burstBits / 1000
+
+	// COMMAND: ovs-vsctl set Interface <port> ingress_policing_rate=<kbps> ingress_policing_burst=<kb>
+	cmd := "ovs-vsctl"
+	args := []string{
+		"set", "Interface", portName,
+		fmt.Sprintf("ingress_policing_rate=%d", rateKbps),
+		fmt.Sprintf("ingress_policing_burst=%d", burstKb),
+	}
+	_, err := execCommand(cmd, args)
+	logging.Verbosef("ovsctl.setIngressPolicing(): port=%s rate=%d kbps burst=%d kb return=%v",
+		portName, rateKbps, burstKb, err)
+	return err
+}
+
+// clearIngressPolicing removes ingress policing from an OVS interface.
+func clearIngressPolicing(portName string) error {
+	// COMMAND: ovs-vsctl set Interface <port> ingress_policing_rate=0 ingress_policing_burst=0
+	cmd := "ovs-vsctl"
+	args := []string{
+		"set", "Interface", portName,
+		"ingress_policing_rate=0",
+		"ingress_policing_burst=0",
+	}
+	_, err := execCommand(cmd, args)
+	logging.Verbosef("ovsctl.clearIngressPolicing(): port=%s return=%v", portName, err)
+	return err
+}
+
+// setEgressPolicer sets an egress-policer QoS on an OVS port to limit
+// traffic TO the container (container ingress). Rate is in bits/sec, burst is in bits.
+// OVS egress-policer uses bytes/sec for cir and bytes for cbs.
+func setEgressPolicer(portName string, rateBits uint64, burstBits uint64) error {
+	// Convert bits to bytes
+	rateBytes := rateBits / 8
+	burstBytes := burstBits / 8
+
+	// COMMAND: ovs-vsctl set port <port> qos=@newqos -- \
+	//   --id=@newqos create qos type=egress-policer other-config:cir=<bytes/sec> other-config:cbs=<bytes>
+	cmd := "ovs-vsctl"
+	args := []string{
+		"set", "port", portName, "qos=@newqos", "--",
+		"--id=@newqos", "create", "qos", "type=egress-policer",
+		fmt.Sprintf("other-config:cir=%d", rateBytes),
+		fmt.Sprintf("other-config:cbs=%d", burstBytes),
+	}
+	_, err := execCommand(cmd, args)
+	logging.Verbosef("ovsctl.setEgressPolicer(): port=%s cir=%d bytes/sec cbs=%d bytes return=%v",
+		portName, rateBytes, burstBytes, err)
+	return err
+}
+
+// clearEgressPolicer removes egress-policer QoS from an OVS port.
+func clearEgressPolicer(portName string) error {
+	// COMMAND: ovs-vsctl clear port <port> qos
+	// Note: This clears the QoS reference. Orphaned QoS objects can be garbage collected.
+	cmd := "ovs-vsctl"
+	args := []string{"--if-exists", "clear", "port", portName, "qos"}
+	_, err := execCommand(cmd, args)
+	logging.Verbosef("ovsctl.clearEgressPolicer(): port=%s return=%v", portName, err)
+	return err
+}

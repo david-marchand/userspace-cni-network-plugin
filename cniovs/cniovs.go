@@ -356,6 +356,25 @@ func addLocalDeviceVhost(conf *types.NetConf, args *skel.CmdArgs, actualSharedDi
 		data.Socket = conf.HostConf.VhostConf.Socketfile
 		data.Vhostname = vhostName
 		data.IfMac = generateRandomMacAddress()
+
+		// Apply bandwidth/QoS settings if configured (best-effort, don't fail on errors)
+		// EgressRate/Burst limits traffic FROM the container (uses OVS ingress policing)
+		if conf.HostConf.BandwidthConf.EgressRate > 0 && conf.HostConf.BandwidthConf.EgressBurst > 0 {
+			if qosErr := setIngressPolicing(vhostName,
+				conf.HostConf.BandwidthConf.EgressRate,
+				conf.HostConf.BandwidthConf.EgressBurst); qosErr != nil {
+				logging.Errorf("Failed to set ingress policing (container egress QoS): %v", qosErr)
+			}
+		}
+
+		// IngressRate/Burst limits traffic TO the container (uses OVS egress policer)
+		if conf.HostConf.BandwidthConf.IngressRate > 0 && conf.HostConf.BandwidthConf.IngressBurst > 0 {
+			if qosErr := setEgressPolicer(vhostName,
+				conf.HostConf.BandwidthConf.IngressRate,
+				conf.HostConf.BandwidthConf.IngressBurst); qosErr != nil {
+				logging.Errorf("Failed to set egress policer (container ingress QoS): %v", qosErr)
+			}
+		}
 	} else {
 		return err
 	}
@@ -365,6 +384,10 @@ func addLocalDeviceVhost(conf *types.NetConf, args *skel.CmdArgs, actualSharedDi
 
 func delLocalDeviceVhost(conf *types.NetConf, args *skel.CmdArgs, data *OvsSavedData) error {
 	sharedDir := getShortSharedDir(data.SharedDir)
+
+	// Clear QoS settings before deleting port (best-effort, ignore errors)
+	_ = clearEgressPolicer(data.Vhostname)
+	_ = clearIngressPolicing(data.Vhostname)
 
 	// ovs-vsctl --if-exists del-port
 	err := deleteVhostPort(data.Vhostname, conf.HostConf.BridgeConf.BridgeName)
